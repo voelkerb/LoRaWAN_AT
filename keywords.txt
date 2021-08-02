@@ -1,0 +1,30 @@
+#######################################
+# Syntax Coloring SimpleMQTT Library
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+	
+Network	KEYWORD1
+LoRaWAN_AT		KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+init	        KEYWORD2
+update KEYWORD2
+join KEYWORD2
+
+#######################################
+# Structures (KEYWORD3)
+#######################################
+
+
+#######################################
+# Constants (LITERAL1)
+
+APP_EUI       LITERAL1
+DEV_EUI       LITERAL1
+APP_KEY       LITERAL1
+#######################################

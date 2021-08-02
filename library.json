@@ -1,0 +1,20 @@
+{
+	"name": "LoRaWAN_AT",
+	"version": "1.0.0",
+	"keywords": "Communication",
+	"description": "Class interfacing through AT commands with a SeeedStudio lora-e5 module.",
+	"authors":
+	[
+		{
+		"name": "Benjamin Voelker",
+		"email": "voelkerb@me.com",
+		"url": "http://github.com/voelkerb/LoRaWAN_AT"
+		}
+	],
+	"repository":
+	{
+		"type": "git",
+		"url": "http://github.com/voelkerb/LoRaWAN_AT.git"
+	},
+	"frameworks": "arduino"
+}
