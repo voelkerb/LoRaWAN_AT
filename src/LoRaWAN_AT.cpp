@@ -18,9 +18,9 @@ LoRaWAN_AT::LoRaWAN_AT() {
   _lastJoin = millis();
   snprintf(_recv_buf, LORA_RCV_BUF_SIZE, "LoRa-RX: ");
   snprintf(_data_buf, LORA_MAX_DATA_SIZE, "");
-  _APP_EUI = NULL;
-  _DEV_EUI = NULL;
-  _APP_KEY = NULL;
+  config.app_eui[0] = NULL;
+  config.dev_eui[0] = NULL;
+  config.app_key[0] = NULL;
   _port = -1;
 }
 
@@ -35,26 +35,36 @@ bool LoRaWAN_AT::init(Stream * uart, void (*logFunc)(const char * msg, ...), voi
   // connected = true;
   return connected;
 }
-
-void LoRaWAN_AT::setOTAA(const char * app_eui, const char * dev_eui, const char * app_key, uint8_t port) {
-  _APP_EUI = app_eui;
-  _DEV_EUI = dev_eui;
-  _APP_KEY = app_key;
-  _port = (int)port;
+void LoRaWAN_AT::setOTAA(LoRaWANConfiguration theConfig) {
+  config = theConfig;
 }
 
 void LoRaWAN_AT::getInfo() {
   at_send_check_response("+ID: AppEui", 1000, "AT+ID");
 }
+ 
+char* LoRaWAN_AT::toHexStr(uint8_t * a, size_t size) {
+  if (size >= sizeof(_data_buf)) {
+    snprintf(_data_buf, LORA_MAX_DATA_SIZE, "!too large!");
+  } else {
+    // Reuse the recv buffer, can sth go wrong?
+    char* buf = _data_buf;
+    char* endofbuf = _data_buf + sizeof(_data_buf);
+    for (int i = 0; i < size; i++) {
+      if (buf < endofbuf) buf += sprintf(buf, "%02X", a[i]);
+    }
+  }
+  return _data_buf;
+}
 
 bool LoRaWAN_AT::joinNetwork() {
   if (connected && not joined && millis() - _lastJoin > LORA_JOIN_TIME) {
-    if (_DEV_EUI) at_send_check_response("+ID: DevEui", 1000, "AT+ID=DevEui, \"%s\"", _DEV_EUI);
-    if (_APP_EUI) at_send_check_response("+ID: AppEui", 1000, "AT+ID=AppEui, \"%s\"", _APP_EUI);
+    if (config.dev_eui[0]) at_send_check_response("+ID: DevEui", 1000, "AT+ID=DevEui, \"%s\"", toHexStr(&config.dev_eui[0], 8));
+    if (config.app_eui[0]) at_send_check_response("+ID: AppEui", 1000, "AT+ID=AppEui, \"%s\"", toHexStr(&config.app_eui[0], 8));
     at_send_check_response("+MODE: LWOTAA", 1000, "AT+MODE=LWOTAA");
     at_send_check_response("+DR: EU868", 1000, "AT+DR=EU868");
     at_send_check_response("+CH: NUM", 1000, "AT+CH=NUM,0-2");
-    if (_APP_KEY) at_send_check_response("+KEY: APPKEY", 1000, "AT+KEY=APPKEY,\"%s\"", _APP_KEY);
+    if (config.app_key[0]) at_send_check_response("+KEY: APPKEY", 1000, "AT+KEY=APPKEY,\"%s\"", toHexStr(&config.app_key[0], 16));
     at_send_check_response("+CLASS: A", 1000, "AT+CLASS=A");
     if (_port > 0 && _port < 224) at_send_check_response("+PORT: 8", 1000, "AT+PORT=%i", _port);
     bool ret = at_send_check_response("+JOIN: Network joined", 12000, "AT+JOIN");
