@@ -25,10 +25,10 @@
 
 struct LoRaWANConfiguration {
   //NOTE: Relay state must be first in configuration
-  uint8_t app_eui[8]; //0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x06
-  uint8_t dev_eui[8]; //0x2C, 0xF7, 0xF1, 0x20, 0x24, 0x90, 0x11, 0xC1
-  uint8_t app_key[16]; //0x2B, 0x7E, 0x15, 0x16, 0x28, 0xAE, 0xD2, 0xA6, 0xAB, 0xF7, 0x15, 0x88, 0x09, 0xCF, 0x4F, 0x3C
-  uint8_t port; // invalid port
+  uint8_t app_eui[8];
+  uint8_t dev_eui[8];
+  uint8_t app_key[16];
+  uint8_t port;
 }; 
 
 class LoRaWAN_AT {
@@ -55,13 +55,8 @@ class LoRaWAN_AT {
     void at_recv();
     void at_send(const char * cmd, ...);
     int at_send_check_response(const char * contains_ack, int timeout_ms, const char * cmd, ...);
-
-    int _port;
     char _recv_buf[LORA_RCV_BUF_SIZE];
     char _data_buf[LORA_MAX_DATA_SIZE];
-    const char * _APP_KEY;
-    const char * _DEV_EUI;
-    const char * _APP_EUI;
     Stream * _uart;
     // A callback on NTP success called
     void (*_logFunc)(const char * msg, ...);

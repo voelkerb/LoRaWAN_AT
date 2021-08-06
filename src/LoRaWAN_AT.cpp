@@ -21,7 +21,7 @@ LoRaWAN_AT::LoRaWAN_AT() {
   config.app_eui[0] = NULL;
   config.dev_eui[0] = NULL;
   config.app_key[0] = NULL;
-  _port = -1;
+  config.port = 255;
 }
 
 bool LoRaWAN_AT::init(Stream * uart, void (*logFunc)(const char * msg, ...), void (*downLinkMsgCB)(const char * data, int port, int snr, int rssi)) {
@@ -66,7 +66,7 @@ bool LoRaWAN_AT::joinNetwork() {
     at_send_check_response("+CH: NUM", 1000, "AT+CH=NUM,0-2");
     if (config.app_key[0]) at_send_check_response("+KEY: APPKEY", 1000, "AT+KEY=APPKEY,\"%s\"", toHexStr(&config.app_key[0], 16));
     at_send_check_response("+CLASS: A", 1000, "AT+CLASS=A");
-    if (_port > 0 && _port < 224) at_send_check_response("+PORT: 8", 1000, "AT+PORT=%i", _port);
+    if (config.port > 0 && config.port < 224) at_send_check_response("+PORT: 8", 1000, "AT+PORT=%i", config.port);
     bool ret = at_send_check_response("+JOIN: Network joined", 12000, "AT+JOIN");
     if (ret) joined = true;
     // Only try each XX seconds
