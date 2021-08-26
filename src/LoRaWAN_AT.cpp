@@ -17,7 +17,7 @@ LoRaWAN_AT::LoRaWAN_AT() {
   joined = false;
   _lastJoin = millis();
   snprintf(_recv_buf, LORA_RCV_BUF_SIZE, "LoRa-RX: ");
-  snprintf(_data_buf, LORA_MAX_DATA_SIZE, "");
+  strncpy(_data_buf, "", sizeof(_data_buf));
   config.app_eui[0] = NULL;
   config.dev_eui[0] = NULL;
   config.app_key[0] = NULL;
@@ -116,7 +116,7 @@ void LoRaWAN_AT::at_recv() {
   int snr = 0;
   bool success = false;
   // Delete what was previously in the receive array.
-  snprintf(_data_buf, LORA_MAX_DATA_SIZE, "");
+  strncpy(_recv_buf, "", sizeof(_recv_buf));
 
   if (_logFunc) _logFunc("LoRa-Msg: %s", _recv_buf);
   p_start = strstr(_recv_buf, "PORT:");
@@ -124,7 +124,7 @@ void LoRaWAN_AT::at_recv() {
     if (_logFunc) _logFunc("LoRa-Port: %i", port);
   }
   p_start = strstr(_recv_buf, "RX");
-  if (p_start && (1 == sscanf(p_start, "RX: \"%s\"", &_data_buf))) {
+  if (p_start && (1 == sscanf(p_start, "RX: \"%s\"", &_data_buf[0]))) {
     success = true;
     uint32_t length = strlen(_data_buf);
     if (_data_buf[length-1] == '\"') _data_buf[length-1] = '\0';
@@ -154,7 +154,6 @@ void LoRaWAN_AT::at_send(const char * cmd, ...) {
 }
 
 int LoRaWAN_AT::at_send_check_response(const char *contains_ack, int timeout_ms, const char * cmd, ...) {
-  int index = 0;
   va_list args;
   va_start(args, cmd);
   vsnprintf(_recv_buf, LORA_RCV_BUF_SIZE, cmd, args);
@@ -164,7 +163,8 @@ int LoRaWAN_AT::at_send_check_response(const char *contains_ack, int timeout_ms,
   if (contains_ack == NULL) return 0;
   delay(20);
   uint32_t startMillis = millis();
-  snprintf(_recv_buf, LORA_RCV_BUF_SIZE, "");
+  // Reset string
+  strncpy(_recv_buf, "", sizeof(_recv_buf));
   while (millis() - startMillis < timeout_ms) {
     while (_uart->available() > 0) {
       readLine();
