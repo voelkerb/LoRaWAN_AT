@@ -77,15 +77,15 @@ bool LoRaWAN_AT::joinNetwork() {
 
 void LoRaWAN_AT::sendCommand(const char * cmd) {
   // if (not connected) return;
-  at_send(cmd);
+  at_send("%s", cmd);
 }
 
 void LoRaWAN_AT::readLine() {
   snprintf(_recv_buf, LORA_RCV_BUF_SIZE, "%s", _uart->readStringUntil('\n').c_str());
   uint32_t length = strlen(_recv_buf);
-  if (_recv_buf[length-1] == '\n') _recv_buf[length-1] = '\0';
+  if (length > 0 && _recv_buf[length-1] == '\n') _recv_buf[length-1] = '\0';
   length = strlen(_recv_buf);
-  if (_recv_buf[length-1] == '\r') _recv_buf[length-1] = '\0';
+  if (length > 0 && _recv_buf[length-1] == '\r') _recv_buf[length-1] = '\0';
 }
 
 void LoRaWAN_AT::update() {
@@ -115,19 +115,16 @@ void LoRaWAN_AT::at_recv() {
   int port = 0;
   int snr = 0;
   bool success = false;
-  // Delete what was previously in the receive array.
-  strncpy(_recv_buf, "", sizeof(_recv_buf));
-
-  if (_logFunc) _logFunc("LoRa-Msg: %s", _recv_buf);
+  // _recv_buf holds the received line, it is parsed below
   p_start = strstr(_recv_buf, "PORT:");
   if (p_start && (1 == sscanf(p_start, "PORT: %d", &port))) {
     if (_logFunc) _logFunc("LoRa-Port: %i", port);
   }
   p_start = strstr(_recv_buf, "RX");
-  if (p_start && (1 == sscanf(p_start, "RX: \"%s\"", &_data_buf[0]))) {
+  if (p_start && (1 == sscanf(p_start, "RX: \"%63s\"", &_data_buf[0]))) {
     success = true;
     uint32_t length = strlen(_data_buf);
-    if (_data_buf[length-1] == '\"') _data_buf[length-1] = '\0';
+    if (length > 0 && _data_buf[length-1] == '\"') _data_buf[length-1] = '\0';
     if (_logFunc) _logFunc("LoRa-Data: %s", _data_buf);
   }
   // Read next line which contains RSSI and SNR info
